@@ -1,0 +1,17 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: bigdata-p2-mongo
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - bigdata-net
+
+volumes:
+  mongo-data:
+
+networks:
+  bigdata-net:
+    driver: bridge
