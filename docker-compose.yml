@@ -9,8 +9,37 @@ services:
     networks:
       - bigdata-net
 
+  # Base de datos de origen (simula ITACA). Los .sql se cargan solo la
+  # primera vez, cuando el volumen está vacío.
+  postgres:
+    image: postgres:16
+    container_name: bigdata-p2-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./alumnos.sql:/docker-entrypoint-initdb.d/01_alumnos.sql:ro
+      - ./contenidos.sql:/docker-entrypoint-initdb.d/02_contenidos.sql:ro
+      - ./calificaciones.sql:/docker-entrypoint-initdb.d/03_calificaciones.sql:ro
+      - ./cursos.sql:/docker-entrypoint-initdb.d/04_cursos.sql:ro
+      - ./grupos.sql:/docker-entrypoint-initdb.d/05_grupos.sql:ro
+      - ./ingesta/crear_usuario_lectura.sh:/docker-entrypoint-initdb.d/99_usuario_lectura.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${DB_NAME}"]
+      interval: 5s
+      retries: 20
+    networks:
+      - bigdata-net
+
 volumes:
   mongo-data:
+  postgres-data:
 
 networks:
   bigdata-net:
